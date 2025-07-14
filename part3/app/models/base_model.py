@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 class BaseModel(db.Model):
-    __abstract__ = True  # évite que SQLAlchemy crée une table pour BaseModel directement
+    __abstract__ = True
 
     id = db.Column(db.String(60), primary_key=True, default=lambda: str(uuid.uuid4()))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

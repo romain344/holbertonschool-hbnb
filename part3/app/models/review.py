@@ -1,8 +1,19 @@
 from app.models.base_model import BaseModel
 from .place import Place
 from .user import User
+from app import db
+from sqlalchemy import Column, Integer, String, Float
 
 class Review(BaseModel):
+
+    __tablename__ = 'places'
+    id = Column(Integer, primary_key=True)
+    title = Column(String(128), nullable=False)
+    description = Column(String(512), nullable=True)
+    price = Column(Float, nullable=False)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+
     def __init__(self, text, rating, place, user):
         super().__init__()
         self.text = text

@@ -56,7 +56,7 @@ class PlaceList(Resource):
         data = api.payload
         user_identity = get_jwt_identity()
 
-        data['owner_id'] = user_identity['id']  # Attach the current user
+        data['owner_id'] = user_identity['id']
         try:
             place = facade.create_place(data)
             return place, 201
@@ -81,14 +81,35 @@ class PlaceResource(Resource):
     @api.response(403, 'Not authorized')
     @jwt_required()
     def put(self, place_id):
-        """Authenticated: Update a place (owner only)"""
+        """Admin or Owner: Update a place"""
         user_identity = get_jwt_identity()
         place = facade.get_place(place_id)
 
         if not place:
             return {'error': 'Place not found'}, 404
-        if place['owner']['id'] != user_identity['id']:
+        
+        # Vérification rôle admin ou owner
+        if place['owner']['id'] != user_identity['id'] and user_identity.get('role') != 'admin':
             return {'error': 'You do not have permission to modify this place'}, 403
 
         updated_place = facade.update_place(place_id, api.payload)
         return updated_place, 200
+
+    @api.response(204, 'Deleted')
+    @api.response(404, 'Not found')
+    @api.response(403, 'Not authorized')
+    @jwt_required()
+    def delete(self, place_id):
+        """Admin or Owner: Delete a place"""
+        user_identity = get_jwt_identity()
+        place = facade.get_place(place_id)
+
+        if not place:
+            return {'error': 'Place not found'}, 404
+        
+        # Vérification rôle admin ou owner
+        if place['owner']['id'] != user_identity['id'] and user_identity.get('role') != 'admin':
+            return {'error': 'You do not have permission to delete this place'}, 403
+
+        facade.delete_place(place_id)
+        return '', 204

@@ -1,6 +1,14 @@
 from .base_model import BaseModel
+from app import db
+from sqlalchemy import Column, Integer, String
+
 
 class Amenity(BaseModel):
+
+    __tablename__ = 'amenities'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(128), nullable=False)
+    
     def __init__(self, name):
         super().__init__()
         self.name = name
