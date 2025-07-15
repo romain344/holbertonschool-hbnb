@@ -1,7 +1,7 @@
 from app.models.base_model import BaseModel
 from .place import Place
 from .user import User
-from app import db
+from app.extensions import db
 from sqlalchemy import Column, Integer, String, Float
 
 class Review(BaseModel):

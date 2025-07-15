@@ -1,4 +1,5 @@
-from .base_model import BaseModel, db
+from app.models.base_model import BaseModel
+from app.extensions import db
 from app import bcrypt
 from sqlalchemy.orm import validates
 
@@ -16,7 +17,7 @@ class User(BaseModel):
         super().__init__()
         self.first_name = first_name
         self.last_name = last_name
-        self.password = password  # utilise le setter ici
+        self.password = password  
         self.email = email
         self.is_admin = is_admin
         self.places = []

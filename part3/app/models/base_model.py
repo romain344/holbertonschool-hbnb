@@ -1,8 +1,8 @@
 from datetime import datetime
 import uuid
 from flask_sqlalchemy import SQLAlchemy
+from app.extensions import db
 
-db = SQLAlchemy()
 
 class BaseModel(db.Model):
     __abstract__ = True

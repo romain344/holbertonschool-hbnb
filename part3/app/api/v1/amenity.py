@@ -17,10 +17,9 @@ class AmenityList(Resource):
     @api.response(400, 'Invalid input data')
     @api.response(403, 'Forbidden - Admin only')
     def post(self):
-        # Ajouter un équipement (Admin uniquement)
-
+        """Ajouter un équipement (Admin uniquement)"""
         current_user = get_jwt_identity()
-        if current_user.get('role') != 'admin':
+        if not current_user.get('is_admin'):
             return {'error': 'Seul un administrateur peut créer une commodité'}, 403
 
         data = api.payload
@@ -29,7 +28,7 @@ class AmenityList(Resource):
 
     @api.response(200, 'List of amenities retrieved successfully')
     def get(self):
-        # Lister tous les équipements disponibles
+        """Lister tous les équipements disponibles"""
         amenities = facade.get_all_amenities()
         return [amenity.to_dict() for amenity in amenities], 200
 
@@ -38,7 +37,7 @@ class AmenityResource(Resource):
     @api.response(200, 'Amenity details retrieved successfully')
     @api.response(404, 'Amenity not found')
     def get(self, amenity_id):
-
+        """Obtenir les détails d'un équipement"""
         amenity = facade.get_amenity(amenity_id)
         if amenity:
             return amenity.to_dict(), 200
@@ -50,9 +49,9 @@ class AmenityResource(Resource):
     @api.response(404, 'Amenity not found')
     @api.response(403, 'Forbidden - Admin only')
     def put(self, amenity_id):
-        # Modifier un équipement existant (Admin uniquement)
+        """Modifier un équipement existant (Admin uniquement)"""
         current_user = get_jwt_identity()
-        if current_user.get('role') != 'admin':
+        if not current_user.get('is_admin'):
             return {'error': 'Seul un administrateur peut modifier une commodité'}, 403
 
         data = api.payload
@@ -66,9 +65,9 @@ class AmenityResource(Resource):
     @api.response(404, 'Amenity not found')
     @api.response(403, 'Forbidden - Admin only')
     def delete(self, amenity_id):
-
+        """Supprimer un équipement (Admin uniquement)"""
         current_user = get_jwt_identity()
-        if current_user.get('role') != 'admin':
+        if not current_user.get('is_admin'):
             return {'error': 'Seul un administrateur peut supprimer une commodité'}, 403
 
         amenity = facade.get_amenity(amenity_id)

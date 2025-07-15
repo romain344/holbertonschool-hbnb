@@ -1,7 +1,7 @@
 import re
 from .base_model import BaseModel
 from .user import User
-from app import db
+from app.extensions import db
 from sqlalchemy import Column, Integer, String
 
 class Place(BaseModel):

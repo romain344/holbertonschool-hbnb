@@ -1,7 +1,7 @@
 from app.models.user import User
-from app.models.amenity import Amenity
 from app.models.place import Place
 from app.models.review import Review
+from app.models.amenity import Amenity
 from app.persistence.sqlalchemy_repository import SQLAlchemyRepository
 
 class HBnBFacade:
@@ -9,6 +9,7 @@ class HBnBFacade:
         self.user_repository = SQLAlchemyRepository(User)
         self.place_repository = SQLAlchemyRepository(Place)
         self.review_repository = SQLAlchemyRepository(Review)
+        self.amenity_repository = SQLAlchemyRepository(Amenity)
         self.amenity_repository = SQLAlchemyRepository(Amenity)
 
     # ------------------ USERS ------------------ #

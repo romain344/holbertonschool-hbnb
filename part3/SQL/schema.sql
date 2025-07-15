@@ -3,10 +3,10 @@ DROP TABLE IF EXISTS place_amenity;
 DROP TABLE IF EXISTS review;
 DROP TABLE IF EXISTS place;
 DROP TABLE IF EXISTS amenity;
-DROP TABLE IF EXISTS user;
+DROP TABLE IF EXISTS "user";
 
 -- User table
-CREATE TABLE user (
+CREATE TABLE "user" (
     id CHAR(36) PRIMARY KEY,
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE place (
     owner_id CHAR(36) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (owner_id) REFERENCES user(id)
+    FOREIGN KEY (owner_id) REFERENCES "user"(id)
 );
 
 -- Review table
@@ -40,7 +40,7 @@ CREATE TABLE review (
     place_id CHAR(36) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES user(id),
+    FOREIGN KEY (user_id) REFERENCES "user"(id),
     FOREIGN KEY (place_id) REFERENCES place(id),
     UNIQUE (user_id, place_id)
 );
