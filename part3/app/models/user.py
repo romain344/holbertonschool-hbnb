@@ -25,7 +25,8 @@ class User(BaseModel):
 
     @property
     def password(self):
-        raise AttributeError("Password is write-only")
+        return self.password
+   #     raise AttributeError("Password is write-only")
 
     @password.setter
     def password(self, value):
@@ -66,5 +67,6 @@ class User(BaseModel):
             "first_name": self.first_name,
             "last_name": self.last_name,
             "email": self.email,
-            "is_admin": self.is_admin
+            "is_admin": self.is_admin,
+            "password": self.password
         }

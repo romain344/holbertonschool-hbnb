@@ -1,5 +1,6 @@
 from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask import request
 from app.services import facade
 
 api = Namespace('places', description='Place operations')
@@ -55,7 +56,6 @@ class PlaceList(Resource):
         """Authenticated: Create a new place"""
         data = api.payload
         user_identity = get_jwt_identity()
-
         data['owner_id'] = user_identity['id']
         try:
             place = facade.create_place(data)
@@ -63,8 +63,7 @@ class PlaceList(Resource):
         except ValueError as e:
             return {'error': str(e)}, 400
 
-
-@api.route('/<place_id>')
+@api.route('/<string:place_id>')
 class PlaceResource(Resource):
     @api.response(200, 'Place found')
     @api.response(404, 'Not found')
@@ -75,25 +74,18 @@ class PlaceResource(Resource):
             return {'error': 'Place not found'}, 404
         return place, 200
 
-    @api.expect(place_input_model)
-    @api.response(200, 'Updated')
+    @api.response(200, 'Place updated')
+    @api.response(403, 'Unauthorized')
     @api.response(404, 'Not found')
-    @api.response(403, 'Not authorized')
     @jwt_required()
     def put(self, place_id):
-        """Admin or Owner: Update a place"""
-        user_identity = get_jwt_identity()
+        """Authenticated: Update a place (owner only)"""
+        current_user_id = get_jwt_identity()
         place = facade.get_place(place_id)
-
-        if not place:
-            return {'error': 'Place not found'}, 404
-        
-        # Vérification rôle admin ou owner
-        if place['owner']['id'] != user_identity['id'] and user_identity.get('role') != 'admin':
-            return {'error': 'You do not have permission to modify this place'}, 403
-
-        updated_place = facade.update_place(place_id, api.payload)
-        return updated_place, 200
+        if not place or place['owner']['id'] != current_user_id:
+            return {'error': 'Unauthorized action'}, 403
+        data = request.get_json()
+        return facade.update_place(place_id, data), 200
 
     @api.response(204, 'Deleted')
     @api.response(404, 'Not found')
@@ -103,13 +95,9 @@ class PlaceResource(Resource):
         """Admin or Owner: Delete a place"""
         user_identity = get_jwt_identity()
         place = facade.get_place(place_id)
-
         if not place:
             return {'error': 'Place not found'}, 404
-        
-        # Vérification rôle admin ou owner
         if place['owner']['id'] != user_identity['id'] and user_identity.get('role') != 'admin':
             return {'error': 'You do not have permission to delete this place'}, 403
-
         facade.delete_place(place_id)
         return '', 204

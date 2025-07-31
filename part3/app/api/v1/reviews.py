@@ -1,5 +1,6 @@
 from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask import request
 from app.services import facade
 
 api = Namespace('reviews', description='Review operations')
@@ -23,23 +24,23 @@ class ReviewList(Resource):
     @jwt_required()
     @api.expect(review_input_model, validate=True)
     def post(self):
-        current_user = get_jwt_identity()
-        data = api.payload
-
-        # Vérifier que l'utilisateur n'évalue pas son propre lieu
+        """Authenticated: Create a review"""
+        current_user_id = get_jwt_identity()
+        data = request.get_json()
         place = facade.get_place(data['place_id'])
+
         if not place:
             return {'error': 'Place not found'}, 404
-        if place['owner']['id'] == current_user['id']:
-            return {'error': 'Vous ne pouvez pas évaluer votre propre lieu'}, 400
 
-        # Vérifier que l'utilisateur n'a pas déjà évalué ce lieu
-        existing_review = facade.get_review_by_user_and_place(current_user['id'], data['place_id'])
-        if existing_review:
-            return {'error': 'Vous avez déjà évalué ce lieu'}, 400
+        # Vérifier si l'utilisateur est le propriétaire du lieu
+        if place['owner']['id'] == current_user_id:
+            return {'error': 'You cannot review your own place.'}, 400
 
-        # Créer l'avis avec user_id injecté
-        data['user_id'] = current_user['id']
+        # Vérifier si l'utilisateur a déjà évalué ce lieu
+        if facade.has_user_reviewed_place(current_user_id, data['place_id']):
+            return {'error': 'You have already reviewed this place.'}, 400
+
+        data['user_id'] = current_user_id
 
         try:
             review = facade.create_review(data)
@@ -48,14 +49,16 @@ class ReviewList(Resource):
             return {'error': str(e)}, 400
 
     def get(self):
+        """Public: List all reviews"""
         reviews = [r.to_dict() for r in facade.get_all_reviews()]
         return reviews, 200
 
 
-@api.route('/<review_id>')
+@api.route('/<string:review_id>')
 class ReviewResource(Resource):
     @api.response(404, 'Review not found')
     def get(self, review_id):
+        """Public: Get a review by ID"""
         review = facade.get_review(review_id)
         if not review:
             return {'error': 'Review not found'}, 404
@@ -64,31 +67,34 @@ class ReviewResource(Resource):
     @jwt_required()
     @api.expect(review_input_model, validate=True)
     def put(self, review_id):
-        current_user = get_jwt_identity()
+        """Authenticated: Update own review"""
+        current_user_id = get_jwt_identity()
         review = facade.get_review(review_id)
+
         if not review:
             return {'error': 'Review not found'}, 404
 
-        # Admin ou Owner
-        if review.user_id != current_user['id'] and current_user.get('role') != 'admin':
-            return {'error': 'Action non autorisée'}, 403
+        if review.user_id != current_user_id:
+            return {'error': 'Unauthorized action'}, 403
 
+        data = request.get_json()
         try:
-            updated_review = facade.update_review(review_id, api.payload)
+            updated_review = facade.update_review(review_id, data)
             return updated_review.to_dict(), 200
         except ValueError as e:
             return {'error': str(e)}, 400
 
     @jwt_required()
     def delete(self, review_id):
-        current_user = get_jwt_identity()
+        """Authenticated: Delete own review"""
+        current_user_id = get_jwt_identity()
         review = facade.get_review(review_id)
+
         if not review:
             return {'error': 'Review not found'}, 404
 
-        # Admin ou Owner
-        if review.user_id != current_user['id'] and current_user.get('role') != 'admin':
-            return {'error': 'Action non autorisée'}, 403
+        if review.user_id != current_user_id:
+            return {'error': 'Unauthorized action'}, 403
 
         facade.delete_review(review_id)
-        return {'message': 'Review supprimée avec succès'}, 200
+        return {}, 204
