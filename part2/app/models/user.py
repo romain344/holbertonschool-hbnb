@@ -55,13 +55,16 @@ class User(BaseModel):
         if not isinstance(value, str):
             raise TypeError("Email must be a string")
         self.is_valid_email('Email', value)
+        old_email = getattr(self, "_User__email", None)
+    # Si c'est le même email qu'avant, ne rien faire
+        if old_email == value:
+            return
+    # Sinon, vérifier s'il est déjà utilisé
         if value in User._emails:
             raise ValueError("Email already exists")
-
-        # Supprimer l'ancien email si on en change
-        if hasattr(self, "_User__email"):
-            User._emails.discard(self.__email)
-
+    # Retirer l'ancien email de l'ensemble s’il existe
+        if old_email:
+            User._emails.discard(old_email)
         self.__email = value
         User._emails.add(value)
 
@@ -79,5 +82,6 @@ class User(BaseModel):
             "id": self.id,
             "first_name": self.first_name,
             "last_name": self.last_name,
-            "email": self.email
+            "email": self.email,
+            "password": self.password
         }
