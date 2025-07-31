@@ -51,3 +51,14 @@ class Review(BaseModel):
         if not value:
             raise ValueError("manque l'utilisateur")
         self.__user = value
+    
+    def to_dict(self):
+        """Convert the Review instance to a dictionary."""
+        review_dict = super().to_dict()
+        review_dict.update({
+            'text': self.text,
+            'rating': self.rating,
+            'place_id': self.place.id if self.place else None,
+            'user_id': self.user.id if self.user else None
+        })
+        return review_dict

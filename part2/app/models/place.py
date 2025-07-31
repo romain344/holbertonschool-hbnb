@@ -1,28 +1,26 @@
-import re
-from base_model import BaseModel
-from user import User
+from .base_model import BaseModel
 
 class Place(BaseModel):
-    def __init__(self, name, description, longitude, latitude, price, owner):
+    def __init__(self, title, description, longitude, latitude, price, owner_id, amenities=None):
         super().__init__()
-        self.name = name
+        self.title = title
         self.description = description
         self.longitude = longitude
         self.latitude = latitude
         self.price = price
-        self.owner = owner
+        self.owner_id = owner_id
         self.reviews = []
-        self.amenities = []  # corrigé 'amanities' en 'amenities'
-    
-    @property
-    def name(self):
-        return self.__name
+        self.amenities = amenities if amenities is not None else []
 
-    @name.setter
-    def name(self, value):
+    @property
+    def title(self):
+        return self.__title
+
+    @title.setter
+    def title(self, value):
         if not isinstance(value, str) or not value:
-            raise ValueError("Name must be a non-empty string.")
-        self.__name = value
+            raise ValueError("Title must be a non-empty string.")
+        self.__title = value
 
     @property
     def description(self):
@@ -71,11 +69,23 @@ class Place(BaseModel):
         self.__price = value
 
     @property
-    def owner(self):
-        return self.__owner
+    def owner_id(self):
+        return self.__owner_id
 
-    @owner.setter
-    def owner(self, value):
+    @owner_id.setter
+    def owner_id(self, value):
         if not isinstance(value, str) or not value:
-            raise ValueError("Owner must be a non-empty string.")
-        self.__owner = value
+            raise ValueError("Owner ID must be a non-empty string.")
+        self.__owner_id = value
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+            "price": self.price,
+            "latitude": self.latitude,
+            "longitude": self.longitude,
+            "owner_id": self.owner_id,
+            "amenities": [a.id for a in self.amenities]
+        }
